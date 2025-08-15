@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Whack a Lamumu</title>
+<style>
+  /* Your CSS exactly as provided */
+  :root{
+    --bg:#0b0f17;
+    --panel:#111827;
+    --accent:#7c3aed;
+    --accent-2:#22d3ee;
+    --good:#10b981;
+    --bad:#ef4444;
+    --text:#e5e7eb;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body {
+  margin:0;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background: radial-gradient(1200px 600px at 50% -10%, #1f2937 0%, var(--bg) 60%);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+  color:var(--text);
+}
+ .game {
+  width: 100%;
+  height: 100%;
+  max-width: 1000px;
+  display: flex;
+  flex-direction: column;
+}
+header{
+    padding:16px 18px;
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    border-bottom:1px solid #1f2839;
+    background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0));
+  }
+  header h1{
+    font-size: clamp(18px, 3.2vw, 24px);
+    margin:0; letter-spacing:.3px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .logo{
+    width:34px; height:34px; border-radius:10px;
+    display:grid; place-items:center; font-size:20px;
+    background:
+      radial-gradient(10px 10px at 70% 30%, var(--accent-2), transparent 60%),
+      radial-gradient(18px 18px at 30% 70%, var(--accent), transparent 60%),
+      #0d1220;
+    border:1px solid #2e3a58;
+    box-shadow: 0 6px 16px rgba(124,58,237,.25), inset 0 0 12px rgba(34,211,238,.15);
+  }
+  .controls{
+    display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:flex-end;
+  }
+  .pill{
+    padding:8px 10px; border:1px solid #263249; border-radius:10px; background:#0e1423;
+    font-size:13px; display:flex; gap:8px; align-items:center;
+  }
+  .btn{
+    border:none; border-radius:10px; padding:10px 14px; font-weight:600; cursor:pointer;
+    background:linear-gradient(180deg, var(--accent), #5b21b6);
+    color:white; box-shadow: 0 6px 18px rgba(124,58,237,.35);
+  }
+  .btn.secondary{
+    background:linear-gradient(180deg, #374151, #1f2937);
+    color:#e5e7eb; box-shadow:none; border:1px solid #2a364e;
+  }
+  .board-wrap {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 18px;
+  padding: 12px;
+  overflow: hidden;
+}
+ @media (max-width:800px) {
+  .board-wrap {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+  }
+}
+  .board {
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(900px 600px at 50% -20%, rgba(124,58,237,.15), rgba(34,211,238,.06), transparent 70%), #0f1424;
+  border: 1px solid #22314b;
+  border-radius: 14px;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+  .cell{
+    position:relative; isolation:isolate;
+    background: linear-gradient(180deg, #0b1020, #0a0e19);
+    border:1px solid #1e2a42;
+    border-radius:12px; overflow:hidden;
+    box-shadow: inset 0 -8px 18px rgba(0,0,0,.45);
+    display:grid; place-items:end;
+    cursor: crosshair;
+    user-select:none;
+    touch-action: manipulation;
+  }
+  .hole{
+    width:76%; height:34%;
+    background: radial-gradient(60% 70% at 50% 35%, #0e1629, #05070c 70%);
+    border-radius:50%;
+    margin:0 auto 10px auto;
+    box-shadow: 0 -6px 20px rgba(0,0,0,.65), inset 0 6px 12px rgba(255,255,255,.05);
+  }
+  .lamumu {
+  position: absolute;
+  left: 50%;
+  bottom: 18%;
+  transform: translateX(-50%);
+  width: 160px;
+  height: auto;
+  animation: pop .18s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes pop {
+  from { transform: translateX(-50%) translateY(100%) scale(0.9); }
+  to { transform: translateX(-50%) translateY(0) scale(1); }
+}
+  .lamumu::before{
+    content:"";
+    position:absolute; inset:0; border-radius:inherit;
+    background: radial-gradient(80px 60px at 70% 20%, rgba(255,255,255,.22), transparent 60%);
+    pointer-events:none;
+  }
+  .face{
+    width:64px; height:40px; border-radius:20px; background:#0b0f17aa;
+    display:grid; grid-template-columns: 1fr 1fr 1fr; align-items:center; justify-items:center;
+    gap:8px;
+  }
+  .eye, .eye::after{
+    display:block; width:10px; height:10px; border-radius:50%;
+  }
+  .eye{ background:#0a0e19; position:relative; }
+  .eye::after{ content:""; background:#e5e7eb; width:4px; height:4px; position:absolute; top:2px; left:2px; opacity:.9; }
+  .mouth{
+    width:18px; height:8px; border-radius:10px; background:#111827; margin-top:4px;
+  }
+  .hitflash{ animation: hit .25s ease-out; }
+  @keyframes hit{ from{ box-shadow:0 0 0 0 rgba(16,185,129,.7);} to{ box-shadow:0 0 0 14px rgba(16,185,129,0);} }
+  .side{
+    display:grid; gap:12px;
+  }
+  .card{
+    background:#0e1424; border:1px solid #22314b; border-radius:12px; padding:14px;
+  }
+  .stats{ display:grid; gap:10px; font-size:14px; }
+  .stat-row{ display:flex; align-items:center; justify-content:space-between; }
+  progress{ width:100%; height:10px; border-radius:10px; overflow:hidden; }
+  progress::-webkit-progress-bar{ background:#111827; }
+  progress::-webkit-progress-value{ background: linear-gradient(90deg, var(--accent-2), var(--accent)); }
+  .tiny{ font-size:12px; opacity:.75;}
+  .range-row{ display:grid; gap:6px; }
+  input[type="range"]{ width:100%; }
+  .overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 50;
+}
+.overlay.hidden { display: none; }
+.gameover-card {
+  background: #1f2937;
+  border: 2px solid var(--accent);
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  color: var(--text);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  animation: popIn 0.3s ease-out;
+}
+.gameover-card h2 {
+  margin: 0 0 10px;
+  color: var(--accent-2);
+}
+@keyframes popIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+  .footer{
+    text-align:center; font-size:12px; opacity:.7; padding:8px 14px 16px;
+  }
+</style>
+</head>
+<body>
+    <audio id="bgMusic" loop>
+  <source src="lamumu.mp3" type="audio/mpeg">
+  Your browser does not support the audio tag.
+</audio>
+
+  <div class="game">
+    <header>
+      <h1><span class="logo">🟪</span> Whack a Lamumu</h1>
+      
+      <div class="controls">
+        <button id="toggleMusic" class="btn secondary">🔊 Music</button>
+        <div class="pill">⏱️ Time: <strong id="time">30</strong>s</div>
+        <div class="pill">⭐ Score: <strong id="score">0</strong></div>
+        <div class="pill">🔥 Streak: <strong id="streak">0</strong></div>
+        <button class="btn" id="startBtn">Start</button>
+        <button class="btn secondary" id="resetBtn" disabled>Reset</button>
+      </div>
+    </header>
+
+    <div class="board-wrap">
+      <div class="board" id="board" aria-label="Lamumu board (3 by 3)">
+        <!-- 9 cells -->
+      </div>
+
+      <aside class="side">
+        <div class="card stats">
+          <div class="stat-row"><span>Level</span><strong id="levelLabel">1</strong></div>
+          <div class="stat-row"><span>Lamumu speed</span><strong id="speedMs">900ms</strong></div>
+          <div class="range-row">
+            <label class="tiny" for="gridSize">Grid size</label>
+            <input id="gridSize" type="range" min="3" max="5" step="1" value="3" />
+            <div class="stat-row tiny"><span>3×3 (easier)</span><span>5×5 (harder)</span></div>
+          </div>
+          <div class="range-row">
+            <label class="tiny" for="duration">Pop-up duration</label>
+            <input id="duration" type="range" min="500" max="1500" step="50" value="900" />
+            <div class="stat-row tiny"><span>Faster</span><span>Slower</span></div>
+          </div>
+          <div class="range-row">
+            <label class="tiny" for="roundTime">Round length (seconds)</label>
+            <input id="roundTime" type="range" min="15" max="60" step="5" value="30" />
+            <div class="stat-row tiny"><span>Short</span><span>Long</span></div>
+          </div>
+          <div class="range-row">
+            <label class="tiny" for="sfx">Sound FX</label>
+            <input id="sfx" type="checkbox" checked />
+            <span class="tiny">Beep on hit</span>
+          </div>
+          <progress id="timeBar" value="30" max="30"></progress>
+        </div>
+
+        <div class="card">
+          <strong>How to play</strong>
+          <p class="tiny" style="margin-top:8px;">
+            Tap the Lamumu when it pops up. Each hit = <b>+1</b> point.
+            Keep a streak to level up & make Lamumu faster. Misses don’t penalize — but speed will!
+          </p>
+        </div>
+      </aside>
+    </div>
+
+    <div class="footer tiny">
+  © <a href="https://twitter.com/wru_kii" target="_blank" style="color:var(--accent-2);text-decoration:none;">wru_kii</a>
+</div>
+
+  </div>
+  <!-- Game Over overlay -->
+<div id="gameOverScreen" class="overlay hidden">
+  <div class="gameover-card">
+    <h2>🎉 Game Over!</h2>
+    <p>Your score: <strong id="finalScore">0</strong></p>
+    <p>Level reached: <strong id="finalLevel">1</strong></p>
+    <button id="playAgainBtn" class="btn">Play Again</button>
+  </div>
+</div>
+
+</div> <!-- closes .game -->
+
+<script>
+(() => {
+  // ----- State -----
+  let gridN = 3;
+  let score = 0;
+  let streak = 0;
+  let level = 1;
+  let roundSeconds = 30;
+  let timeLeft = roundSeconds;
+  let popDuration = 900; // ms Lamumu stays visible
+  let nextPopTimer = null;
+  let roundTimer = null;
+  let currentCellIndex = -1;
+  let hitThisPop = false;
+  let gameRunning = false;
+  let audioCtx = null;
+  const minDuration = 400; // clamp min speed
+
+  // ----- Elements -----
+  const board = document.getElementById('board');
+  const scoreEl = document.getElementById('score');
+  const timeEl = document.getElementById('time');
+  const streakEl = document.getElementById('streak');
+  const levelEl = document.getElementById('levelLabel');
+  const startBtn = document.getElementById('startBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const gridSize = document.getElementById('gridSize');
+  const duration = document.getElementById('duration');
+  const roundTime = document.getElementById('roundTime');
+  const timeBar = document.getElementById('timeBar');
+  const speedMs = document.getElementById('speedMs');
+  const sfx = document.getElementById('sfx');
+  const music = document.getElementById("bgMusic");
+
+
+  document.getElementById("toggleMusic").addEventListener("click", () => {
+  if (music.paused) {
+    music.play();
+  } else {
+    music.pause();
+  }
+});
+
+  // ----- Helpers -----
+  function beep(freq = 520, ms = 70) {
+    if (!sfx.checked) return;
+    try{
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = 'square';
+      o.frequency.value = freq;
+      o.connect(g); g.connect(audioCtx.destination);
+      g.gain.setValueAtTime(0.12, audioCtx.currentTime);
+      o.start();
+      g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + ms/1000);
+      o.stop(audioCtx.currentTime + ms/1000);
+    }catch(e){/* ignore */}
+  }
+
+  function randInt(n){ return Math.floor(Math.random() * n); }
+
+  function buildBoard(n){
+    board.innerHTML = '';
+    board.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
+    const cells = [];
+    for (let i=0; i<n*n; i++){
+      const cell = document.createElement('button');
+      cell.className = 'cell';
+      cell.setAttribute('aria-label', 'Hole ' + (i+1));
+      cell.innerHTML = `<div class="hole"></div>`;
+      // clicks
+      cell.addEventListener('pointerdown', () => handleHit(cell, i));
+      board.appendChild(cell);
+      cells.push(cell);
+    }
+    return cells;
+  }
+
+  let cells = buildBoard(gridN);
+
+  function setUI(){
+    scoreEl.textContent = score;
+    timeEl.textContent = timeLeft;
+    streakEl.textContent = streak;
+    levelEl.textContent = level;
+    speedMs.textContent = `${popDuration}ms`;
+    timeBar.max = roundSeconds;
+    timeBar.value = timeLeft;
+    resetBtn.disabled = !gameRunning;
+    startBtn.textContent = gameRunning ? 'Pause' : (timeLeft < roundSeconds && timeLeft>0 ? 'Resume' : 'Start');
+  }
+
+  function clearLamumu(){
+    if (currentCellIndex >= 0){
+      const cell = cells[currentCellIndex];
+      const kid = cell.querySelector('.lamumu');
+      if (kid) cell.removeChild(kid);
+    }
+    currentCellIndex = -1;
+    hitThisPop = false;
+  }
+
+ function spawnLamumu(){
+  const n = cells.length;
+  let idx = randInt(n);
+  if (n > 1){
+    // avoid same cell twice in a row
+    while(idx === currentCellIndex) idx = randInt(n);
+  }
+  clearLamumu();
+  currentCellIndex = idx;
+
+  const cell = cells[idx];
+
+  // Pick random Lamumu color
+  const lamumuImages = [
+    "pink lamumu.png",
+    "orange lamumu.png",
+    "blue lamumu.png",
+    "purple lamumu.png",
+    "green lamumu.png"
+  ];
+  const chosenImage = lamumuImages[randInt(lamumuImages.length)];
+
+  const m = document.createElement('img');
+  m.src = chosenImage;
+  m.alt = "Lamumu";
+  m.className = "lamumu";
+  m.draggable = false; // prevent dragging
+  cell.appendChild(m);
+
+  // remove after duration
+  nextPopTimer = setTimeout(() => {
+    clearLamumu();
+    scheduleNext();
+  }, popDuration);
+}
+
+  function scheduleNext(){
+    if (!gameRunning) return;
+    // small random gap to keep rhythm fun
+    const gap = Math.max(80, popDuration * 0.25 * Math.random());
+    nextPopTimer = setTimeout(spawnLamumu, gap);
+  }
+
+  function handleHit(cell, index){
+    if (!gameRunning) return;
+
+    const hasLamumu = (index === currentCellIndex) && cell.querySelector('.lamumu');
+    if (!hasLamumu) return;
+
+    if (hitThisPop) return; // already scored this popup
+    hitThisPop = true;
+
+    // score & feedback
+    score += 1;
+    streak += 1;
+    cell.classList.add('hitflash');
+    setTimeout(()=>cell.classList.remove('hitflash'), 250);
+    beep(680, 70);
+
+    // level up every 5 streaks: get faster down to a clamp
+    if (streak % 5 === 0){
+      level += 1;
+      popDuration = Math.max(minDuration, Math.round(popDuration * 0.9));
+      duration.value = popDuration;
+    }
+
+    // remove and schedule next
+    setUI();
+    clearTimeout(nextPopTimer);
+    clearLamumu();
+    scheduleNext();
+  }
+
+  function startRound(){
+  music.volume = 0.5;
+  music.currentTime = 0; // restart from beginning
+  music.play().catch(err => {
+    console.log("Music playback blocked until user interaction:", err);
+  });
+
+  if (gameRunning){ // pause
+    gameRunning = false;
+    clearTimeout(nextPopTimer);
+    clearInterval(roundTimer);
+    music.pause(); // stop music if pausing
+    setUI();
+    return;
+  }
+
+  if (timeLeft === roundSeconds){
+    gridN = parseInt(gridSize.value, 10);
+    cells = buildBoard(gridN);
+    popDuration = parseInt(duration.value, 10);
+    roundSeconds = parseInt(roundTime.value, 10);
+    timeLeft = roundSeconds;
+    score = 0; streak = 0; level = 1;
+  }
+
+  gameRunning = true;
+  setUI();
+
+  spawnLamumu();
+  roundTimer = setInterval(() => {
+    if (!gameRunning) return;
+    timeLeft -= 1;
+    if (timeLeft <= 0){
+      timeLeft = 0;
+      endRound();
+    }
+    setUI();
+  }, 1000);
+}
+
+
+function endRound(){
+  gameRunning = false;
+  clearTimeout(nextPopTimer);
+  clearInterval(roundTimer);
+  clearLamumu();
+  setUI();
+
+  beep(320, 120);
+  setTimeout(()=>beep(240, 160), 120);
+
+  music.pause();       // ⬅ stop music
+  music.currentTime = 0; // reset to start
+
+  document.getElementById("finalScore").textContent = score;
+  document.getElementById("finalLevel").textContent = level;
+  document.getElementById("gameOverScreen").classList.remove("hidden");
+}
+
+
+  function resetRound(){
+    gameRunning = false;
+    clearTimeout(nextPopTimer);
+    clearInterval(roundTimer);
+    clearLamumu();
+    score = 0; streak = 0; level = 1;
+    gridN = parseInt(gridSize.value, 10);
+    cells = buildBoard(gridN);
+    popDuration = parseInt(duration.value, 10);
+    roundSeconds = parseInt(roundTime.value, 10);
+    timeLeft = roundSeconds;
+    setUI();
+  }
+
+  // ----- Events -----
+  startBtn.addEventListener('click', startRound);
+  resetBtn.addEventListener('click', resetRound);
+
+  gridSize.addEventListener('input', () => {
+    if (gameRunning) return;
+    gridN = parseInt(gridSize.value, 10);
+    cells = buildBoard(gridN);
+  });
+  duration.addEventListener('input', () => {
+    if (gameRunning) return;
+    popDuration = parseInt(duration.value, 10);
+    speedMs.textContent = `${popDuration}ms`;
+  });
+  roundTime.addEventListener('input', () => {
+    if (gameRunning) return;
+    roundSeconds = parseInt(roundTime.value, 10);
+    timeLeft = roundSeconds;
+    timeBar.max = roundSeconds;
+    timeBar.value = timeLeft;
+    timeEl.textContent = timeLeft;
+  });
+  document.getElementById("playAgainBtn").addEventListener("click", () => {
+  document.getElementById("gameOverScreen").classList.add("hidden");
+  resetRound();
+});
+
+
+  // Init UI
+  setUI();
+})();
+</script>
+</body>
+</html>
