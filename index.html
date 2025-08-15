@@ -79,10 +79,10 @@ header{
   padding: 12px;
   overflow: hidden;
 }
- @media (max-width: 600px) {
-  .hole {
-    width: 90%;
-    height: 45%;
+ @media (max-width:800px) {
+  .board-wrap {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
   }
 }
   .board {
@@ -108,8 +108,7 @@ header{
     touch-action: manipulation;
   }
   .hole{
-    width: clamp(60%, 80%, 90%); /* scale with screen size */
-    height: clamp(30%, 40%, 45%);
+    width:76%; height:34%;
     background: radial-gradient(60% 70% at 50% 35%, #0e1629, #05070c 70%);
     border-radius:50%;
     margin:0 auto 10px auto;
@@ -560,4 +559,5 @@ function endRound(){
 </script>
 </body>
 </html>
+
 
